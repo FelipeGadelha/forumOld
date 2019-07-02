@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import br.com.alura.forum.repository.UsuarioRepository;
 
 @EnableWebSecurity		//habilitando o spring security no projeto todos os EndPoints ficam bloqueados por padrão
 @Configuration
@@ -20,6 +23,12 @@ public class SecurityConfigurations extends WebSecurityConfigurerAdapter {
 	
 	@Autowired
 	private AutenticacaoService autenticacaoService;
+	
+	@Autowired
+	private TokenService tokenService;
+	
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 	
 	@Override
 	@Bean
@@ -51,7 +60,8 @@ public class SecurityConfigurations extends WebSecurityConfigurerAdapter {
 		.antMatchers(HttpMethod.POST, "/auth").permitAll()
 		.anyRequest().authenticated()
 		.and().csrf().disable()
-		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+		.and().addFilterBefore(new AutenticacaoViaTokenFilter(tokenService, usuarioRepository), UsernamePasswordAuthenticationFilter.class);
 		
 		//Cross Site Request Foldirew -> um tipo de ataque hacker que acontece com sites.
 		//.and().formLogin(); -> com isso o spring autentica usando sessão 
